@@ -66,7 +66,7 @@ then
 else
     results="$(grep '(' results.txt)"
     trimmed_results="$(tr -d 'OK()' <<< $results)"
-    total_tests="$(cut -d ' ' -f 2 <<< $trimmed_results)"
+    total_tests="$(cut -d ' ' -f 1 <<< $trimmed_results)"
 
     echo 'Tests run:' $total_tests 'Tests passed:' $total_tests
 
