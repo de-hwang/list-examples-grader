@@ -1,6 +1,7 @@
 set -e
 
-CPATH='.;lib/hamcrest-core-1.3.jar;lib/junit-4.13.2.jar'
+CPATH='.:lib/hamcrest-core-1.3.jar:lib/junit-4.13.2.jar'
+CPATH2='.:lib/hamcrest-core-1.3.jar:lib/junit-4.13.2.jar:grading-area/'
 
 rm -rf student-submission
 rm -rf grading-area
@@ -42,21 +43,34 @@ else
     echo 'All files compiled successfully.'
 fi
 
-java -cp $CPATH org.junit.runner.JUnitCore ./grading-area/TestListExamples > results.txt
+java -cp $CPATH2 org.junit.runner.JUnitCore TestListExamples > results.txt
 
-results="$(grep 'Tests run' results.txt)"
-tests_ran="$(cut -d ',' -f 1 <<< $results)"
-tests_failed="$(cut -d ',' -f 2 <<< $results)"
+test="$(grep 'OK' results.txt)"
 
-number_ran="$(tr -d 'Tests run: ' <<< $tests_ran)"
-number_failed="$(tr -d 'Failures: ' <<< $tests_failed)"
+if [[ $? -ne 0 ]]
+then
+    results="$(grep 'Tests run' results.txt)"
+    tests_ran="$(cut -d ',' -f 1 <<< $results)"
+    tests_failed="$(cut -d ',' -f 2 <<< $results)"
 
-echo $results
+    number_ran="$(tr -d 'Tests run: ' <<< $tests_ran)"
+    number_failed="$(tr -d 'Failures: ' <<< $tests_failed)"
 
-let "number_passed = $number_failed - $number_ran"
+    echo $results
 
-let "grade = ($number_passed / $number_ran) * 100"
+    let "number_passed = $number_failed - $number_ran"
 
-echo 'You currently have a' $grade 'on this assignment.'
+    let "grade = ($number_passed / $number_ran) * 100"
+
+    echo 'You currently have a' $grade '% on this assignment.'
+else
+    results="$(grep '(' results.txt)"
+    trimmed_results="$(tr -d 'OK()' <<< $results)"
+    total_tests="$(cut -d ' ' -f 2 <<< $trimmed_results)"
+
+    echo 'Tests run:' $total_tests 'Tests passed:' $total_tests
+
+    echo 'You currently have a 100 % on this assignment'
+fi
 
 exit
